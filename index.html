@@ -3,188 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Bengali OMR Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Pro OMR Generator (Vector PDF)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root {
-            --primary-color: black; 
-            --light-pink: #fce4ec; 
-            --border-color: black;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        .setup-box {
-            background: white; padding: 30px; border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;
-            width: 100%; max-width: 400px; margin-bottom: 20px;
-        }
-
-        .btn {
-            padding: 12px 25px; background: var(--primary-color);
-            color: white; border: none; border-radius: 6px;
-            cursor: pointer; font-weight: bold; margin-top: 10px;
-        }
-
-        /* OMR Paper Style - optimized for PDF */
-        #omr-paper {
-            display: none; 
-            background: white; 
-            width: 190mm; /* A4 width minus margins */
-            padding: 5mm;
-            box-sizing: border-box;
-        }
-
-        .omr-header-text {
-            text-align: center; color: var(--primary-color);
-            font-size: 24px; font-weight: bold; margin-bottom: 15px;
-        }
-
-        .dashboard {
-            width: 100%; border-collapse: collapse; margin-bottom: 10px;
-        }
-        .dashboard td {
-            border: 1px solid var(--border-color); padding: 5px 8px;
-            font-size: 12px; color: #333;
-        }
-        .label { background: var(--light-pink); font-weight: bold; width: 20%; }
-
-        .omr-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
-        }
-        .omr-col { border: 1.5px solid var(--border-color); }
-        
-        .col-head {
-            display: flex; background: var(--light-pink);
-            border-bottom: 1.5px solid var(--border-color); font-weight: bold; font-size: 12px;
-        }
-        .h-no { width: 30px; text-align: center; padding: 3px 0; border-right: 1.5px solid var(--border-color); }
-        .h-ans { flex: 1; text-align: center; padding: 3px 0; }
-
-        .row {
-            display: flex; border-bottom: 1px solid #eee;
-            height: 28px; align-items: center;
-        }
-        .q-no {
-            width: 30px; text-align: center; font-weight: bold;
-            border-right: 1.5px solid var(--border-color); font-size: 13px;
-        }
-        .options {
-            display: flex; flex: 1; justify-content: space-around; padding: 0 2px;
-        }
-        .bubble {
-            width: 18px; height: 18px; border: 1px solid var(--primary-color);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 10px; font-weight: bold;
-        }
-
-        @media print {
-            .setup-box, .actions { display: none !important; }
-            #omr-paper { display: block !important; }
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .setup-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
+        .btn { padding: 12px 25px; background: #000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
+        input { padding: 10px; width: 100px; border: 2px solid #000; border-radius: 5px; margin: 10px 0; font-size: 16px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="setup-box" id="setup">
-        <h2>Bangla OMR Maker</h2>
-        <p>প্রশ্নের সংখ্যা লিখুন</p>
-        <input type="number" id="qCount" value="100" style="padding:10px; width:100px;">
+    <div class="setup-box">
+        <h2 style="margin-top:0">OMR PDF Maker</h2>
+        <p>প্রশ্নের সংখ্যা দিন (১-১০০)</p>
+        <input type="number" id="qCount" value="100">
         <br>
-        <button class="btn" onclick="generateOMR()">Preview OMR</button>
-    </div>
-
-    <div class="actions" id="controls" style="display:none; margin-bottom: 20px;">
-        <button class="btn" style="background:#555" onclick="location.reload()">Back</button>
-        <button class="btn" id="downloadBtn" onclick="downloadPDF()">Download PDF</button>
-    </div>
-
-    <div id="omr-paper">
-        <div class="omr-header-text">OMR ANSWER SHEET</div>
-        
-        <table class="dashboard">
-            <tr>
-                <td class="label">EXAM NAME</td>
-                <td class="value">................................</td><td class="label">TOTAL Q.</td>
-<td class="value" id="disp-count">০</td>
-               
-            </tr>
-            <tr>
-                 <td class="label">CANDIDATE NAME</td>
- <td class="value">................................</td>
-         <td class="label">SKIP</td>
-<td class="value">................................</td>       
-            </tr>
-            
-            
-            
-            <tr>
-   ">................................</td>
-    <td class="label">DATE</td>
-    <td class="value">....... / ....... / 20...</td>
-    
-    <td class="label">OPTAIN MARKS</td>
-<td class="value">................................</td>
-    
-</tr>
-        </table>
-
-        <div class="omr-grid" id="grid"></div>
+        <button class="btn" onclick="downloadVectorPDF()">Download & Open in Drive</button>
+        <p style="font-size: 12px; color: #666; line-height: 1.5;">
+            * এটি সরাসরি হাই-কোয়ালিটি ভেক্টর পিডিএফ তৈরি করবে।<br>
+            * জুম করলে ফাটবে না এবং ফাইল সাইজ অত্যন্ত কম হবে।
+        </p>
     </div>
 
     <script>
-        const bnNums = ['0','1','2','3','4','5','6','7','8','9'];
-        function toBn(n) { return n.toString().split('').map(d => bnNums[d]).join(''); }
+        function downloadVectorPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const qCount = parseInt(document.getElementById('qCount').value) || 100;
 
-        function generateOMR() {
-            const count = parseInt(document.getElementById('qCount').value) || 100;
-            document.getElementById('disp-count').innerText = toBn(count);
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
+            // ১. কালার সেটআপ (আপনার আগের স্টাইল অনুযায়ী)
+            const primaryColor = [0, 0, 0]; // Black
+            const pinkColor = [252, 228, 236]; // Light Pink
 
-            let current = 1;
-            // A4 এ ১০০টির বেশি প্রশ্ন এক পেজে ধরানো কঠিন, তাই লিমিট ১০০ রাখা হলো
-            const limit = Math.min(count, 100);
-            const totalCols = 4;
-            const rowsPerCol = Math.ceil(limit / totalCols);
+            // ২. হেডার এবং টেবিল ড্রয়িং (Vector Mode)
+            doc.setFillColor(...primaryColor);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.text("OMR ANSWER SHEET", 105, 15, { align: "center" });
 
-            for(let i=0; i<totalCols; i++) {
-                let col = `<div class="omr-col"><div class="col-head"><div class="h-no">ক্রম</div><div class="h-ans">উত্তর</div></div>`;
-                for(let j=0; j<rowsPerCol; j++) {
-                    if(current > limit) break;
-                    col += `<div class="row">
-                        <div class="q-no">${toBn(current)}</div>
-                        <div class="options">
-                            <div class="bubble">A</div><div class="bubble">B</div><div class="bubble">C</div><div class="bubble">D</div>
-                        </div>
-                    </div>`;
-                    current++;
+            // ড্যাশবোর্ড বক্স
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.3);
+            
+            // ড্যাশবোর্ড সেলগুলো আঁকা
+            const drawCell = (x, y, w, h, label, value, isLabel = false) => {
+                if(isLabel) {
+                    doc.setFillColor(...pinkColor);
+                    doc.rect(x, y, w, h, 'F');
                 }
-                col += `</div>`;
-                grid.innerHTML += col;
-            }
-            document.getElementById('setup').style.display='none';
-            document.getElementById('controls').style.display='block';
-            document.getElementById('omr-paper').style.display='block';
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('omr-paper');
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     'omr_sheet.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                doc.rect(x, y, w, h);
+                doc.setFontSize(9);
+                doc.setTextColor(isLabel ? 0 : 50);
+                doc.text(label, x + 2, y + 6);
+                if(value) {
+                    doc.setFontSize(10);
+                    doc.text(value, x + w - 2, y + 6, { align: 'right' });
+                }
             };
 
-            // এটি ফাইলটি সরাসরি ডাউনলোড করবে এবং এক পেজেই রাখবে
-            html2pdf().set(opt).from(element).save();
+            // ড্যাশবোর্ড গ্রিড (৩টি সারি)
+            let dY = 22;
+            drawCell(10, dY, 40, 10, "EXAM NAME", "", true);
+            drawCell(50, dY, 60, 10, "................................", "");
+            drawCell(110, dY, 40, 10, "TOTAL Q.", "", true);
+            drawCell(150, dY, 50, 10, qCount.toString(), "");
+
+            dY += 10;
+            drawCell(10, dY, 40, 10, "CANDIDATE NAME", "", true);
+            drawCell(50, dY, 60, 10, "................................", "");
+            drawCell(110, dY, 40, 10, "SKIP", "", true);
+            drawCell(150, dY, 50, 10, "..................", "");
+
+            dY += 10;
+            drawCell(10, dY, 40, 10, "DATE", "", true);
+            drawCell(50, dY, 60, 10, ".../.../202...", "");
+            drawCell(110, dY, 40, 10, "OBTAIN MARKS", "", true);
+            drawCell(150, dY, 50, 10, "..................", "");
+
+            // ৩. ওএমআর কলাম সেটআপ (১-২৫ কলাম ভিত্তিক)
+            const startY = 60;
+            const colWidth = 46;
+            const rowHeight = 8.5;
+
+            doc.setTextColor(0);
+            for (let i = 0; i < Math.min(qCount, 100); i++) {
+                const colIndex = Math.floor(i / 25); // প্রতি কলামে ২৫টি
+                const rowIndex = i % 25;
+
+                const x = 10 + (colIndex * (colWidth + 2));
+                const y = startY + (rowIndex * rowHeight);
+
+                // রো বর্ডার ও নম্বর
+                doc.setDrawColor(0);
+                doc.setFillColor(...pinkColor);
+                doc.rect(x, y, 8, rowHeight, 'F'); // নম্বর কলামের ব্যাকগ্রাউন্ড
+                doc.rect(x, y, colWidth, rowHeight); // পুরো রো বর্ডার
+                
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text((i + 1).toString(), x + 4, y + 5.5, { align: "center" });
+
+                // অপশন বাবল (বিত্ত আঁকা)
+                const options = ['A', 'B', 'C', 'D'];
+                options.forEach((opt, optIdx) => {
+                    const bx = x + 15 + (optIdx * 8.5);
+                    const by = y + 4.2;
+                    
+                    doc.setLineWidth(0.15);
+                    doc.circle(bx, by, 3, 'S'); // বৃত্ত
+                    doc.setFontSize(8);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(opt, bx, by + 0.8, { align: "center" });
+                });
+            }
+
+            // ৪. সরাসরি ডাউনলোড
+            // এটি ব্রাউজারের মাধ্যমে ফাইল ডাউনলোড করবে। 
+            // মোবাইলে এটি সরাসরি Google Drive PDF Viewer এ খোলার অপশন দেয়।
+            doc.save("OMR_Official_Sheet.pdf");
         }
     </script>
 </body>
