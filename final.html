@@ -2,96 +2,116 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>প্রিন্ট প্রিভিউ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download OMR Sheet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #525659; }
         
-        /* কলাম লেআউট */
-        .sheet-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 20px; 
-            justify-content: flex-start;
+        /* বাটনের জন্য স্টাইল */
+        .controls { text-align: center; padding: 20px; background: #fff; border-bottom: 1px solid #ddd; }
+        .btn-dl { background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+
+        /* প্রিন্ট এরিয়া - A4 সাইজ ফিক্সড */
+        #print-area { 
+            background: white; 
+            width: 210mm; 
+            min-height: 297mm; 
+            margin: 20px auto; 
+            padding: 15mm; 
+            box-sizing: border-box;
         }
-        
-        .column { 
-            border: 1px solid #ccc; 
-            padding: 10px;
-            min-width: 200px;
+
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+
+        /* ৪ টি কলামের গ্রিড */
+        .omr-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            column-gap: 20px; 
         }
+
+        .column { display: flex; flex-direction: column; }
 
         .row { 
             display: flex; 
             align-items: center; 
-            margin-bottom: 8px; 
-            font-size: 14px;
+            height: 30px; /* ফিক্সড হাইট যাতে ২৫টি রো সুন্দরভাবে আটে */
+            margin-bottom: 5px;
         }
 
-        .q-no { width: 30px; font-weight: bold; }
-        .options { display: flex; gap: 10px; }
+        .q-no { width: 30px; font-size: 14px; font-weight: bold; }
+        .options { display: flex; gap: 8px; }
         .circle { 
-            width: 18px; height: 18px; 
-            border: 1px solid #333; 
+            width: 20px; height: 20px; 
+            border: 1.5px solid #000; 
             border-radius: 50%; 
-            display: inline-block; 
-            text-align: center; 
-            font-size: 11px; 
-            line-height: 18px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 10px; font-weight: bold; 
         }
 
-        .btn-container { text-align: center; margin-top: 30px; }
-        .print-btn { background: #28a745; color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; }
-
-        @media print {
-            .btn-container { display: none; }
-            body { padding: 0; }
-        }
+        @media print { .controls { display: none; } #print-area { margin: 0; } }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>উত্তরপত্র (Answer Sheet)</h2>
+<div class="controls">
+    <button class="btn-dl" onclick="downloadPDF()">PDF ডাউনলোড করুন</button>
 </div>
 
-<div id="sheet" class="sheet-container">
+<div id="print-area">
+    <div class="header">
+        <h1 style="margin:0;">OMR ANSWER SHEET</h1>
+        <p>Candidate Name: __________________________ Roll: __________</p>
     </div>
 
-<div class="btn-container">
-    <button class="print-btn" onclick="window.print()">প্রিন্ট করুন</button>
+    <div id="sheet-content" class="omr-grid">
+        </div>
 </div>
 
 <script>
-    const totalQ = parseInt(localStorage.getItem('qCount')) || 0;
-    const sheet = document.getElementById('sheet');
+    const totalQ = parseInt(localStorage.getItem('totalQ')) || 0;
+    const sheetContent = document.getElementById('sheet-content');
     const rowsPerColumn = 25;
 
-    // কয়টি কলাম লাগবে তা হিসেব করা
-    const totalColumns = Math.ceil(totalQ / rowsPerColumn);
+    // মোট কয়টি কলাম লাগবে (সর্বোচ্চ ৪ কলাম বা তার বেশি হলেও সমস্যা নেই)
+    const totalColumnsNeeded = Math.ceil(totalQ / rowsPerColumn);
 
-    for (let i = 0; i < totalColumns; i++) {
+    for (let i = 0; i < totalColumnsNeeded; i++) {
         const colDiv = document.createElement('div');
         colDiv.className = 'column';
 
         for (let j = 1; j <= rowsPerColumn; j++) {
-            const qIndex = i * rowsPerColumn + j;
-            if (qIndex > totalQ) break; // ইনপুট সংখ্যার বেশি হলে লুপ বন্ধ হবে
+            const currentNumber = (i * rowsPerColumn) + j;
+            if (currentNumber > totalQ) break;
 
             const rowDiv = document.createElement('div');
             rowDiv.className = 'row';
             rowDiv.innerHTML = `
-                <div class="q-no">${qIndex}.</div>
+                <div class="q-no">${currentNumber}.</div>
                 <div class="options">
-                    <span class="circle">A</span>
-                    <span class="circle">B</span>
-                    <span class="circle">C</span>
-                    <span class="circle">D</span>
+                    <div class="circle">A</div>
+                    <div class="circle">B</div>
+                    <div class="circle">C</div>
+                    <div class="circle">D</div>
                 </div>
             `;
             colDiv.appendChild(rowDiv);
         }
-        sheet.appendChild(colDiv);
+        sheetContent.appendChild(colDiv);
+    }
+
+    // PDF ডাউনলোডের ফাংশন
+    function downloadPDF() {
+        const element = document.getElementById('print-area');
+        const opt = {
+            margin:       0,
+            filename:     'OMR-Sheet.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 

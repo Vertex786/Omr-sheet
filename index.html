@@ -2,30 +2,27 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>OMR জেনারেটর</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMR Generator</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f7f6; }
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
-        button { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #0056b3; }
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 18px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>কতটি প্রশ্ন চান?</h2>
-        <input type="number" id="totalQuestions" placeholder="যেমন: ১০০" min="1">
-        <button onclick="generateSheet()">শিট তৈরি করুন</button>
+    <div class="box">
+        <h2>OMR শিট তৈরি করুন</h2>
+        <input type="number" id="qCount" placeholder="মোট প্রশ্ন সংখ্যা (যেমন: ১০০)" min="1">
+        <button onclick="saveAndGo()">ফাইনাল পেজ দেখুন</button>
     </div>
-
     <script>
-        function generateSheet() {
-            const count = document.getElementById('totalQuestions').value;
-            if(count > 0) {
-                localStorage.setItem('qCount', count);
+        function saveAndGo() {
+            const num = document.getElementById('qCount').value;
+            if(num > 0) {
+                localStorage.setItem('totalQ', num);
                 window.location.href = 'final.html';
-            } else {
-                alert("দয়া করে একটি সঠিক সংখ্যা দিন।");
             }
         }
     </script>
