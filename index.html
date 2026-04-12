@@ -110,23 +110,35 @@
         <table class="dashboard">
             <tr>
                 <td class="label">EXAM NAME</td>
-                <td class="value">................................</td>
-                <td class="label">CANDIDATE NAME</td>
-                <td class="value">................................</td>
+                <td class="value">................................</td><td class="label">TOTAL Q.</td>
+<td class="value" id="disp-count">০</td>
+               
             </tr>
             <tr>
-                <td class="label">TOTAL Q.</td>
-                <td class="value" id="disp-count">০</td>
-                <td class="label">DATE</td>
-                <td class="value">....... / ....... / 20...</td>
+                 <td class="label">CANDIDATE NAME</td>
+ <td class="value">................................</td>
+         <td class="label">SKIP</td>
+<td class="value">................................</td>       
             </tr>
+            
+            
+            
+            <tr>
+   ">................................</td>
+    <td class="label">DATE</td>
+    <td class="value">....... / ....... / 20...</td>
+    
+    <td class="label">OPTAIN MARKS</td>
+<td class="value">................................</td>
+    
+</tr>
         </table>
 
         <div class="omr-grid" id="grid"></div>
     </div>
 
     <script>
-        const bnNums = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        const bnNums = ['0','1','2','3','4','5','6','7','8','9'];
         function toBn(n) { return n.toString().split('').map(d => bnNums[d]).join(''); }
 
         function generateOMR() {
