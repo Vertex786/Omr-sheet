@@ -3,32 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download OMR Sheet</title>
+    <title>High Quality OMR Sheet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #525659; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #444; }
         
-        /* বাটনের জন্য স্টাইল */
-        .controls { text-align: center; padding: 20px; background: #fff; border-bottom: 1px solid #ddd; }
-        .btn-dl { background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        /* কন্ট্রোল প্যানেল */
+        .controls { 
+            position: sticky; top: 0; z-index: 100;
+            text-align: center; padding: 15px; background: #f8f9fa; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
+        .btn-dl { 
+            background: #27ae60; color: white; padding: 14px 28px; 
+            border: none; border-radius: 8px; font-size: 16px; 
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .btn-dl:hover { background: #219150; }
 
-        /* প্রিন্ট এরিয়া - A4 সাইজ ফিক্সড */
+        /* প্রিন্ট এরিয়া - এ৪ সাইজ (একদম নিখুঁত মাপ) */
         #print-area { 
             background: white; 
             width: 210mm; 
             min-height: 297mm; 
             margin: 20px auto; 
-            padding: 15mm; 
+            padding: 10mm 15mm; 
             box-sizing: border-box;
+            position: relative;
         }
 
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #000; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
 
-        /* ৪ টি কলামের গ্রিড */
+        .info-section { margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+
+        /* ৪ কলাম লেআউট লজিক */
         .omr-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            column-gap: 20px; 
+            column-gap: 30px; 
         }
 
         .column { display: flex; flex-direction: column; }
@@ -36,33 +49,43 @@
         .row { 
             display: flex; 
             align-items: center; 
-            height: 30px; /* ফিক্সড হাইট যাতে ২৫টি রো সুন্দরভাবে আটে */
-            margin-bottom: 5px;
+            height: 28px; 
+            margin-bottom: 4px;
         }
 
-        .q-no { width: 30px; font-size: 14px; font-weight: bold; }
-        .options { display: flex; gap: 8px; }
+        .q-no { width: 30px; font-size: 13px; font-weight: bold; color: #000; }
+        .options { display: flex; gap: 10px; }
+        
+        /* বৃত্তের ডিজাইন যা ফাটবে না */
         .circle { 
-            width: 20px; height: 20px; 
-            border: 1.5px solid #000; 
+            width: 19px; height: 19px; 
+            border: 1.2px solid #000; 
             border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 10px; font-weight: bold; 
+            font-size: 9px; font-weight: 900; color: #000;
         }
 
-        @media print { .controls { display: none; } #print-area { margin: 0; } }
+        /* প্রিন্ট করার জন্য অতিরিক্ত সেটিংস */
+        @media print {
+            .controls { display: none; }
+            body { background: white; }
+            #print-area { margin: 0; border: none; }
+        }
     </style>
 </head>
 <body>
 
 <div class="controls">
-    <button class="btn-dl" onclick="downloadPDF()">PDF ডাউনলোড করুন</button>
+    <button class="btn-dl" onclick="downloadPDF()">HD PDF ডাউনলোড করুন</button>
 </div>
 
 <div id="print-area">
     <div class="header">
-        <h1 style="margin:0;">OMR ANSWER SHEET</h1>
-        <p>Candidate Name: __________________________ Roll: __________</p>
+        <h1>OMR ANSWER SHEET</h1>
+    </div>
+
+    <div class="info-section">
+        Name: _________________________________ Roll: ______________ Date: _________
     </div>
 
     <div id="sheet-content" class="omr-grid">
@@ -70,11 +93,11 @@
 </div>
 
 <script>
-    const totalQ = parseInt(localStorage.getItem('totalQ')) || 0;
+    // আগের পেজ থেকে ডেটা নেওয়া
+    const totalQ = parseInt(localStorage.getItem('totalQ')) || 100;
     const sheetContent = document.getElementById('sheet-content');
     const rowsPerColumn = 25;
 
-    // মোট কয়টি কলাম লাগবে (সর্বোচ্চ ৪ কলাম বা তার বেশি হলেও সমস্যা নেই)
     const totalColumnsNeeded = Math.ceil(totalQ / rowsPerColumn);
 
     for (let i = 0; i < totalColumnsNeeded; i++) {
@@ -101,17 +124,30 @@
         sheetContent.appendChild(colDiv);
     }
 
-    // PDF ডাউনলোডের ফাংশন
+    // হাই-কোয়ালিটি PDF ডাউনলোড ফাংশন
     function downloadPDF() {
         const element = document.getElementById('print-area');
+        
+        // রেজোলিউশন বাড়ানোর জন্য সেটিংস (Scale: 4 ব্যবহার করা হয়েছে)
         const opt = {
             margin:       0,
-            filename:     'OMR-Sheet.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
+            filename:     'OMR_Sheet_HD.pdf',
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { 
+                scale: 4, // যত বেশি হবে তত ক্লিয়ার হবে
+                useCORS: true,
+                letterRendering: true
+            },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save();
+        
+        // বাটন টেক্সট চেঞ্জ (ইউজারকে বুঝানোর জন্য যে কাজ চলছে)
+        const btn = document.querySelector('.btn-dl');
+        btn.innerText = "প্রসেসিং হচ্ছে... একটু অপেক্ষা করুন";
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerText = "HD PDF ডাউনলোড করুন";
+        });
     }
 </script>
 
