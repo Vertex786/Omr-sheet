@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Bengali OMR Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: black; 
@@ -31,62 +30,57 @@
             color: white; border: none; border-radius: 6px;
             cursor: pointer; font-weight: bold; margin-top: 10px;
         }
-        
-        .btn:disabled {
-            background: #888;
-            cursor: not-allowed;
-        }
 
-        /* OMR Paper Style */
+        /* OMR Paper Style - optimized for PDF */
         #omr-paper {
-            display: none; background: white; width: 210mm;
-            min-height: 297mm; padding: 10mm 15mm; box-sizing: border-box;
+            display: none; 
+            background: white; 
+            width: 190mm; /* A4 width minus margins */
+            padding: 5mm;
+            box-sizing: border-box;
         }
 
         .omr-header-text {
             text-align: center; color: var(--primary-color);
-            font-size: 24px; font-weight: bold; margin-bottom: 20px;
+            font-size: 24px; font-weight: bold; margin-bottom: 15px;
         }
 
-        /* Dashboard Style */
         .dashboard {
             width: 100%; border-collapse: collapse; margin-bottom: 10px;
         }
         .dashboard td {
-            border: 1.5px solid var(--border-color); padding: 8px 12px;
-            font-size: 14px; color: #333;
+            border: 1px solid var(--border-color); padding: 5px 8px;
+            font-size: 12px; color: #333;
         }
-        .label { background: var(--light-pink); font-weight: bold; width: 22%; }
+        .label { background: var(--light-pink); font-weight: bold; width: 20%; }
 
-        /* OMR Columns */
         .omr-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
         }
-        .omr-col { border: 2px solid var(--border-color); border-radius: 2px; }
+        .omr-col { border: 1.5px solid var(--border-color); }
         
         .col-head {
             display: flex; background: var(--light-pink);
-            border-bottom: 2px solid var(--border-color); font-weight: bold;
+            border-bottom: 1.5px solid var(--border-color); font-weight: bold; font-size: 12px;
         }
-        .h-no { width: 35px; text-align: center; padding: 5px 0; border-right: 2px solid var(--border-color); }
-        .h-ans { flex: 1; text-align: center; padding: 5px 0; }
+        .h-no { width: 30px; text-align: center; padding: 3px 0; border-right: 1.5px solid var(--border-color); }
+        .h-ans { flex: 1; text-align: center; padding: 3px 0; }
 
         .row {
-            display: flex; border-bottom: 1px solid #fce4ec;
-            height: 32px; align-items: center;
+            display: flex; border-bottom: 1px solid #eee;
+            height: 28px; align-items: center;
         }
         .q-no {
-            width: 35px; text-align: center; font-weight: bold;
-            border-right: 2px solid var(--border-color); font-size: 15px;
+            width: 30px; text-align: center; font-weight: bold;
+            border-right: 1.5px solid var(--border-color); font-size: 13px;
         }
         .options {
-            display: flex; flex: 1; justify-content: space-around; padding: 0 5px;
+            display: flex; flex: 1; justify-content: space-around; padding: 0 2px;
         }
         .bubble {
-            width: 20px; height: 20px; border: 1.2px solid var(--primary-color);
+            width: 18px; height: 18px; border: 1px solid var(--primary-color);
             border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 12px; color: var(--primary-color);
-            font-weight: 800;
+            justify-content: center; font-size: 10px; font-weight: bold;
         }
 
         @media print {
@@ -98,20 +92,20 @@
 <body>
 
     <div class="setup-box" id="setup">
-        <h2 style="color:var(--primary-color)">Bangla OMR Maker</h2>
-        <p>ENTER QUESTION NUMBER</p>
-        <input type="number" id="qCount" value="100" style="padding:10px; width:100px; border:2px solid var(--primary-color); border-radius:5px;">
+        <h2>Bangla OMR Maker</h2>
+        <p>প্রশ্নের সংখ্যা লিখুন</p>
+        <input type="number" id="qCount" value="100" style="padding:10px; width:100px;">
         <br>
         <button class="btn" onclick="generateOMR()">Preview OMR</button>
     </div>
 
     <div class="actions" id="controls" style="display:none; margin-bottom: 20px;">
         <button class="btn" style="background:#555" onclick="location.reload()">Back</button>
-        <button class="btn" id="downloadBtn" onclick="downloadVectorPDF()">Open in Google Drive / PDF Viewer</button>
+        <button class="btn" id="downloadBtn" onclick="downloadPDF()">Download PDF</button>
     </div>
 
     <div id="omr-paper">
-        <div class="omr-header-text">OMR SHEET</div>
+        <div class="omr-header-text">OMR ANSWER SHEET</div>
         
         <table class="dashboard">
             <tr>
@@ -121,22 +115,10 @@
                 <td class="value">................................</td>
             </tr>
             <tr>
-                <td class="label">TOTAL QUESTION</td>
-                <td class="value" id="disp-count">0</td>
+                <td class="label">TOTAL Q.</td>
+                <td class="value" id="disp-count">০</td>
                 <td class="label">DATE</td>
                 <td class="value">....... / ....... / 20...</td>
-            </tr>
-            <tr>
-                <td class="label">CORRECT ANSWER</td>
-                <td class="value">__________</td>
-                <td class="label">WRONG ANSWER</td>
-                <td class="value">__________</td>
-            </tr>
-            <tr>
-                <td class="label">SKIP</td>
-                <td class="value">__________</td>
-                <td class="label">TOTAL NUMBER</td>
-                <td class="value">__________</td>
             </tr>
         </table>
 
@@ -154,12 +136,14 @@
             grid.innerHTML = '';
 
             let current = 1;
+            // A4 এ ১০০টির বেশি প্রশ্ন এক পেজে ধরানো কঠিন, তাই লিমিট ১০০ রাখা হলো
             const limit = Math.min(count, 100);
-            const cols = Math.ceil(limit / 25);
+            const totalCols = 4;
+            const rowsPerCol = Math.ceil(limit / totalCols);
 
-            for(let i=0; i<cols; i++) {
+            for(let i=0; i<totalCols; i++) {
                 let col = `<div class="omr-col"><div class="col-head"><div class="h-no">ক্রম</div><div class="h-ans">উত্তর</div></div>`;
-                for(let j=0; j<25; j++) {
+                for(let j=0; j<rowsPerCol; j++) {
                     if(current > limit) break;
                     col += `<div class="row">
                         <div class="q-no">${toBn(current)}</div>
@@ -177,37 +161,18 @@
             document.getElementById('omr-paper').style.display='block';
         }
 
-        function downloadVectorPDF() {
-            const btn = document.getElementById('downloadBtn');
-            btn.innerText = "Processing High-Quality PDF...";
-            btn.disabled = true;
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
+        function downloadPDF() {
             const element = document.getElementById('omr-paper');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'omr_sheet.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-            doc.html(element, {
-                callback: function (doc) {
-                    // এটি সরাসরি ডাউনলোড না করে একটি Blob URL তৈরি করবে
-                    // যার ফলে মোবাইলে এটি Google Drive PDF Viewer-এ ওপেন হবে।
-                    const pdfBlob = doc.output('blob');
-                    const pdfUrl = URL.createObjectURL(pdfBlob);
-                    
-                    window.open(pdfUrl, '_blank');
-                    
-                    btn.innerText = "Open in Google Drive / PDF Viewer";
-                    btn.disabled = false;
-                },
-                x: 0, 
-                y: 0,
-                width: 210,
-                windowWidth: 794,
-                html2canvas: { 
-                    scale: 4, // এই scale: 4 এর কারণেই জুম করলে পিডিএফ একদমই ফাটবে না (High Resolution)
-                    useCORS: true,
-                    logging: false
-                }
-            });
+            // এটি ফাইলটি সরাসরি ডাউনলোড করবে এবং এক পেজেই রাখবে
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
