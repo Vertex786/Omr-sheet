@@ -3,177 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional OMR Preview</title>
+    <title>Premium OMR Preview & Download</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --paper-width: 210mm;
-            --paper-height: 297mm;
+            --paper-w: 210mm;
+            --paper-h: 297mm;
         }
+        body { background: #1a1a1a; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; font-family: 'Arial', sans-serif; }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background: #34495e; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-        }
+        /* প্রিভিউ এরিয়া জুম আউট ফিক্স */
+        .viewport { width: 100%; display: flex; justify-content: center; padding: 40px 0; overflow: hidden; }
 
-        /* প্রিভিউ এরিয়া কন্ট্রোল */
-        .viewport {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 20px 0;
-            overflow-x: auto; /* মোবাইলে প্রয়োজনে ডানে-বামে স্ক্রল হবে */
-        }
-
-        /* আসল A4 পেজের ডিজাইন (প্রিভিউ) */
-        .a4-page {
+        .a4-preview {
             background: white;
-            width: var(--paper-width);
-            height: var(--paper-height);
-            padding: 12mm;
+            width: var(--paper-w);
+            height: var(--paper-h);
+            padding: 15mm;
             box-sizing: border-box;
-            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
-            position: relative;
         }
 
-        /* মোবাইলে পুরো পেজটি এক নজরে দেখার জন্য স্কেলিং */
+        /* মোবাইলে পুরো পেজ দেখার জন্য স্মার্ট স্কেলিং */
         @media screen and (max-width: 210mm) {
-            .viewport {
-                justify-content: flex-start;
-                padding: 10px;
-            }
-            .a4-page {
-                transform: scale(0.4); /* স্ক্রিন অনুযায়ী ছোট করা */
-                transform-origin: top left;
-                margin-bottom: -180mm; /* স্কেলিং গ্যাপ ঠিক করা */
-                margin-right: -120mm;
+            .a4-preview {
+                transform: scale(0.42);
+                transform-origin: top center;
+                margin-bottom: -170mm;
             }
         }
-
         @media screen and (max-width: 500px) {
-            .a4-page {
-                transform: scale(0.35);
-                margin-bottom: -195mm;
-            }
+            .a4-preview { transform: scale(0.35); margin-bottom: -190mm; }
         }
 
-        /* পেজ কন্টেন্ট */
-        .header { 
-            border: 2.5px solid #000; 
-            text-align: center; 
-            padding: 10px; 
-            margin-bottom: 20px; 
-        }
-        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+        /* প্রিমিয়াম ডিজাইন এলিমেন্টস */
+        .header { border: 4px double #000; text-align: center; padding: 10px; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 28px; letter-spacing: 4px; font-weight: 900; }
 
-        .info-fields { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 25px; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 10px;
-            font-size: 14px;
-            font-weight: bold;
-        }
+        .info-bar { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 15px; font-weight: bold; font-size: 14px; }
 
-        /* ৪ কলামের গ্রিড (সবসময় পাশাপাশি থাকবে) */
-        .omr-body { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            column-gap: 12px; 
-            flex-grow: 1;
-        }
+        .omr-grid { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 15px; flex-grow: 1; }
 
-        .col-box { 
-            border: 1.5px solid #000; 
-            padding: 8px 4px; 
-            display: flex; 
-            flex-direction: column; 
-        }
+        .col-box { border: 2px solid #000; padding: 10px 5px; background: #fff; height: fit-content; }
 
-        .q-row { 
-            display: flex; 
-            align-items: center; 
-            height: 28px; 
-            border-bottom: 1px solid #f0f0f0; 
-        }
-        .q-num { width: 22px; font-weight: bold; font-size: 12px; }
-        .opts { display: flex; gap: 7px; margin-left: auto; }
+        .q-row { display: flex; align-items: center; justify-content: center; height: 32px; border-bottom: 1px solid #eee; }
+        .q-num { width: 25px; font-weight: bold; font-size: 13px; text-align: left; }
+        
+        .opt-wrap { display: flex; gap: 10px; justify-content: center; align-items: center; flex-grow: 1; }
+        
         .circle { 
-            width: 17px; 
-            height: 17px; 
-            border: 1.3px solid #000; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 8.5px; 
-            font-weight: bold; 
+            width: 20px; height: 20px; border: 1.5px solid #000; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 10px; font-weight: bold; 
         }
 
         /* ডাউনলোড বাটন */
-        .footer-nav { 
-            position: fixed; bottom: 0; width: 100%; 
-            background: white; padding: 15px; 
-            text-align: center; box-shadow: 0 -5px 15px rgba(0,0,0,0.2); 
-            z-index: 1000; 
-        }
-        .dl-btn { 
-            background: #000; color: #fff; border: none; 
-            padding: 14px 40px; border-radius: 50px; 
-            font-size: 16px; font-weight: bold; cursor: pointer; 
-        }
+        .footer-bar { position: fixed; bottom: 0; width: 100%; background: #fff; padding: 20px; text-align: center; box-shadow: 0 -10px 30px rgba(0,0,0,0.2); z-index: 9999; }
+        .btn-main { background: #000; color: #fff; border: none; padding: 15px 50px; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div class="viewport">
-        <div class="a4-page" id="omr-paper">
+        <div class="a4-preview" id="omr-sheet">
             <div class="header"><h1>OMR ANSWER SHEET</h1></div>
             
-            <div class="info-fields">
-                <span>NAME: ______________________</span>
+            <div class="info-bar">
+                <span>NAME: __________________________</span>
                 <span>ROLL: __________</span>
                 <span>DATE: _________</span>
             </div>
 
-            <div id="grid-content" class="omr-body">
-                </div>
+            <div id="grid-container" class="omr-grid"></div>
 
-            <div style="text-align: center; font-size: 10px; color: #888; margin-top: 20px;">
-                * Use Black Ballpoint Pen only.
-            </div>
+
         </div>
     </div>
 
-    <div class="footer-nav">
-        <button class="dl-btn" onclick="generatePDF()">DOWNLOAD NATIVE PDF</button>
+    <div class="footer-bar">
+        <button class="btn-main" onclick="downloadPDF()">DOWNLOAD PREMIUM PDF</button>
     </div>
 
     <script>
         const totalQ = parseInt(localStorage.getItem('totalQ')) || 100;
-        const grid = document.getElementById('grid-content');
-        const perCol = 25;
+        const grid = document.getElementById('grid-container');
+        const rowsPerCol = 25;
 
-        // প্রিভিউ লোড করার লজিক (সবসময় ৪ কলাম লেআউট)
+        // প্রিভিউ জেনারেট করা
         for (let i = 0; i < 4; i++) {
             const col = document.createElement('div');
             col.className = 'col-box';
             
-            for (let j = 1; j <= perCol; j++) {
-                const qNum = (i * perCol) + j;
+            for (let j = 1; j <= rowsPerCol; j++) {
+                const qNum = (i * rowsPerCol) + j;
                 if (qNum > totalQ) break;
                 col.innerHTML += `
                     <div class="q-row">
-                        <div class="q-num">${qNum}</div>
-                        <div class="opts">
+                        <div class="q-num">${qNum}.</div>
+                        <div class="opt-wrap">
                             <div class="circle">A</div><div class="circle">B</div>
                             <div class="circle">C</div><div class="circle">D</div>
                         </div>
@@ -182,43 +111,74 @@
             grid.appendChild(col);
         }
 
-        // Native PDF জেনারেশন
-        function generatePDF() {
+        // Native High-Quality PDF জেনারেশন
+        function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             
-            doc.setLineWidth(0.8);
-            doc.rect(15, 15, 180, 15);
+            // ১. টাইটেল বক্স
+            doc.setLineWidth(1);
+            doc.rect(15, 15, 180, 16); 
             doc.setFont("helvetica", "bold");
-            doc.text("OMR ANSWER SHEET", 105, 25, { align: "center" });
+            doc.setFontSize(22);
+            doc.text("OMR ANSWER SHEET", 105, 26, { align: "center" });
 
-            doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.text("NAME: ___________________________________", 15, 42);
-            doc.text("ROLL: __________________", 115, 42);
+            // ২. ক্যান্ডিডেট ইনফো
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.text("NAME: ___________________________________", 15, 43);
+            doc.text("ROLL: _________________", 105, 43);
+            doc.text("DATE: ___________", 165, 43);
+            doc.setLineWidth(0.5);
+            doc.line(15, 46, 195, 46);
 
-            let sX = 15, sY = 55, rH = 8.6, cW = 46;
+            // ৩. ওএমআর ডেটা জেনারেশন
+            let startX = 15;
+            let startY = 58;
+            let rowH = 8.8; // রো হাইট ফিক্সড করা হয়েছে
+            let colW = 46;
 
             for (let i = 0; i < totalQ; i++) {
-                let cIdx = Math.floor(i / perCol);
-                let rIdx = i % perCol;
-                let x = sX + (cIdx * cW);
-                let y = sY + (rIdx * rH);
+                let colIdx = Math.floor(i / rowsPerCol);
+                let rowIdx = i % rowsPerCol;
+                let x = startX + (colIdx * colW);
+                let y = startY + (rowIdx * rowH);
 
-                if (rIdx === 0) {
-                    doc.setLineWidth(0.4);
-                    doc.rect(x - 2, sY - 6, cW - 4, (perCol * rH) + 3);
+                // প্রতিটি কলামের জন্য বর্ডার বক্স
+                if (rowIdx === 0) {
+                    doc.setLineWidth(0.6);
+                    doc.rect(x - 2, startY - 7, colW - 4, (rowsPerCol * rowH) + 4);
                 }
-                doc.setFontSize(10); doc.setFont("helvetica", "bold");
-                doc.text(`${i + 1}`, x, y);
 
-                ['A','B','C','D'].forEach((opt, idx) => {
-                    let cX = x + 10 + (idx * 8.5);
+                // প্রশ্ন নাম্বার
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${i + 1}.`, x, y);
+
+                // বৃত্তগুলো (সেন্টার অ্যালাইনমেন্ট ফিক্সড)
+                const opts = ['A','B','C','D'];
+                opts.forEach((opt, idx) => {
+                    let cX = x + 12 + (idx * 8.5);
                     doc.setLineWidth(0.3);
-                    doc.circle(cX, y - 1, 2, 'S');
-                    doc.setFontSize(7); doc.text(opt, cX, y - 0.2, { align: "center" });
+                    doc.circle(cX, y - 1, 2.1, 'S'); // পারফেক্ট সার্কেল
+                    doc.setFontSize(7.5);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(opt, cX, y - 0.1, { align: "center" });
                 });
+                
+                // রো সেপারেটর
+                doc.setDrawColor(230);
+                doc.setLineWidth(0.1);
+                doc.line(x - 1, y + 2, x + colW - 7, y + 2);
+                doc.setDrawColor(0);
             }
-            doc.save("Official_OMR_Sheet.pdf");
+
+            // ৪. ফুটার
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text("PLEASE USE BLACK PEN ONLY • DO NOT FOLD THIS SHEET", 105, 288, { align: "center" });
+
+            doc.save("Premium_OMR_Sheet.pdf");
         }
     </script>
 </body>
