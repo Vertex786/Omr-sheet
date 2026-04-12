@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium OMR Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Premium Vector OMR Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #d81b60; /* Deep pink from image */
-            --light-pink: #fce4ec; /* Light pink background */
+            --primary-color: #d81b60; /* Deep pink */
+            --light-pink: #fce4ec; 
             --border-color: #d81b60;
         }
         
@@ -22,7 +22,6 @@
             align-items: center;
         }
 
-        /* Input Section */
         .input-section {
             background: white;
             padding: 30px;
@@ -34,10 +33,7 @@
             max-width: 500px;
         }
 
-        .input-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
+        .input-section h2 { color: var(--primary-color); margin-bottom: 20px; }
 
         input[type="number"] {
             padding: 10px 15px;
@@ -60,30 +56,25 @@
             transition: 0.3s;
         }
 
-        button:hover {
-            background-color: #ad144b;
-        }
+        button:hover { background-color: #ad144b; }
 
-        /* Actions Section */
         .actions {
             display: none;
             gap: 15px;
             margin-bottom: 20px;
         }
 
-        /* OMR Preview Area */
         #omr-preview-container {
             display: none;
             background: white;
             padding: 40px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            width: 210mm; /* A4 Width */
-            min-height: 297mm; /* A4 Height */
+            width: 210mm;
+            min-height: 297mm;
             box-sizing: border-box;
             margin: 0 auto;
         }
 
-        /* OMR Grid Layout */
         .omr-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -97,7 +88,6 @@
             overflow: hidden;
         }
 
-        /* Column Header */
         .omr-header {
             display: flex;
             background-color: var(--light-pink);
@@ -120,7 +110,6 @@
             padding: 8px 0;
         }
 
-        /* Individual Question Row */
         .omr-row {
             display: flex;
             border-bottom: 1px solid rgba(216, 27, 96, 0.3);
@@ -128,13 +117,8 @@
             background-color: white;
         }
         
-        .omr-row:nth-child(even) {
-            background-color: #fff9fb; /* Very subtle pink alternate row */
-        }
-
-        .omr-row:last-child {
-            border-bottom: none;
-        }
+        .omr-row:nth-child(even) { background-color: #fff9fb; }
+        .omr-row:last-child { border-bottom: none; }
 
         .q-number {
             width: 40px;
@@ -152,7 +136,6 @@
             padding: 6px 0;
         }
 
-        /* OMR Bubbles */
         .bubble {
             width: 20px;
             height: 20px;
@@ -166,16 +149,10 @@
             font-weight: bold;
         }
 
-        /* Print Settings to ensure vector graphics and exact layout */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .input-section, .actions { display: none !important; }
-            #omr-preview-container { 
-                box-shadow: none; 
-                margin: 0; 
-                padding: 0;
-                width: 100%;
-            }
+            #omr-preview-container { box-shadow: none; margin: 0; padding: 0; width: 100%; }
             .omr-column { break-inside: avoid; }
         }
     </style>
@@ -185,51 +162,43 @@
     <div class="input-section" id="inputSection">
         <h2>OMR Sheet Generator</h2>
         <p>কতগুলো প্রশ্নের OMR তৈরি করতে চান? (সর্বোচ্চ ১০০)</p>
-        <input type="number" id="qCount" min="1" max="100" placeholder="omr">
-        <button onclick="generateOMR()">Preview OMR</button>
+        <input type="number" id="qCount" min="1" max="100" placeholder="e.g. 50">
+        <button onclick="generatePreview()">Preview OMR</button>
     </div>
 
     <div class="actions" id="actionsSection">
         <button style="background: #333;" onclick="window.location.reload()">Back</button>
-        <button onclick="window.print()">🖨️ Print (Best Vector Quality)</button>
-        <button onclick="downloadPDF()">⬇️ Download PDF</button>
+        <button onclick="window.print()">🖨️ Print</button>
+        <button onclick="downloadVectorPDF()">⬇️ Download Vector PDF</button>
     </div>
 
     <div id="omr-preview-container">
-        <div class="omr-grid" id="omrGrid">
-            </div>
+        <div class="omr-grid" id="omrGrid"></div>
     </div>
 
     <script>
-        function generateOMR() {
+        function generatePreview() {
             const count = parseInt(document.getElementById('qCount').value);
+            if(isNaN(count) || count < 1) { alert("দয়া করে সঠিক সংখ্যা ইনপুট দিন!"); return; }
             
-            if(isNaN(count) || count < 1) {
-                alert("দয়া করে সঠিক সংখ্যা ইনপুট দিন!");
-                return;
-            }
-            
-            const limit = Math.min(count, 100); // Max 100 questions (25 x 4 columns)
+            const limit = Math.min(count, 100);
             const grid = document.getElementById('omrGrid');
-            grid.innerHTML = ''; // Clear previous
+            grid.innerHTML = '';
 
             const maxPerCol = 25;
             const totalCols = Math.ceil(limit / maxPerCol);
-
             let currentQ = 1;
 
             for (let c = 0; c < totalCols; c++) {
                 let colHTML = `
                 <div class="omr-column">
                     <div class="omr-header">
-                        <div class="h-q">প্রশ্ন</div>
-                        <div class="h-a">উত্তর</div>
-                    </div>
-                `;
+                        <div class="h-q">Q.No</div>
+                        <div class="h-a">Answers</div>
+                    </div>`;
 
                 for (let r = 0; r < maxPerCol; r++) {
                     if (currentQ > limit) break;
-                    
                     colHTML += `
                     <div class="omr-row">
                         <div class="q-number">${currentQ}</div>
@@ -242,32 +211,99 @@
                     </div>`;
                     currentQ++;
                 }
-
                 colHTML += `</div>`;
                 grid.innerHTML += colHTML;
             }
 
-            // Hide input, show preview and actions
             document.getElementById('inputSection').style.display = 'none';
             document.getElementById('actionsSection').style.display = 'flex';
             document.getElementById('omr-preview-container').style.display = 'block';
         }
 
-        // Vector PDF Download logic
-        function downloadPDF() {
-            const element = document.getElementById('omr-preview-container');
+        // --- 100% Vector PDF Generator ---
+        function downloadVectorPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
             
-            const opt = {
-                margin:       10,
-                filename:     'OMR_Sheet.pdf',
-                image:        { type: 'jpeg', quality: 1 },
-                // Use html2canvas scale for clear text, but Native Print is still recommended for absolute vector
-                html2canvas:  { scale: 4, useCORS: true }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+            const count = parseInt(document.getElementById('qCount').value) || 50;
+            const limit = Math.min(count, 100);
+            const maxPerCol = 25;
+            const totalCols = Math.ceil(limit / maxPerCol);
 
-            // Generate and open in new tab (Often triggers Google Drive viewer on mobile/Chrome)
-            html2pdf().set(opt).from(element).save();
+            // Layout Settings
+            const marginX = 14; 
+            const marginY = 20;
+            const colWidth = 42; 
+            const colGap = 4.66; // Gap between columns
+            const rowHeight = 9;
+
+            doc.setTextColor(216, 27, 96);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text("OMR Sheet", 105, 12, { align: "center" });
+
+            let currentQ = 1;
+
+            for (let c = 0; c < totalCols; c++) {
+                let startX = marginX + (colWidth + colGap) * c;
+                let startY = marginY;
+
+                // Column Header
+                doc.setFillColor(252, 228, 236); // Light Pink
+                doc.setDrawColor(216, 27, 96);   // Deep Pink
+                doc.setLineWidth(0.4);
+                doc.rect(startX, startY, colWidth, rowHeight, 'FD');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.text("Q.No", startX + 6, startY + 6, { align: "center" });
+                doc.line(startX + 12, startY, startX + 12, startY + rowHeight); // Vertical Line
+                doc.text("Answers", startX + 27, startY + 6, { align: "center" });
+
+                // Rows Loop
+                for (let r = 0; r < maxPerCol; r++) {
+                    if (currentQ > limit) break;
+                    let rowY = startY + rowHeight + (r * rowHeight);
+
+                    // Alternate Row Background
+                    if (r % 2 === 0) {
+                        doc.setFillColor(255, 249, 251); 
+                        doc.rect(startX, rowY, colWidth, rowHeight, 'F');
+                    }
+
+                    // Row Borders
+                    doc.setDrawColor(216, 27, 96);
+                    doc.setLineWidth(0.2);
+                    doc.rect(startX, rowY, colWidth, rowHeight);
+                    doc.line(startX + 12, rowY, startX + 12, rowY + rowHeight);
+
+                    // Question Number
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(currentQ.toString(), startX + 6, rowY + 6, { align: "center" });
+
+                    // OMR Bubbles
+                    const bubbleY = rowY + 4.5;
+                    const options = ['A', 'B', 'C', 'D'];
+                    const bubbleStartX = startX + 16;
+                    const bubbleSpacing = 7; 
+
+                    doc.setTextColor(216, 27, 96);
+                    doc.setFontSize(8);
+                    doc.setLineWidth(0.3);
+
+                    for (let i = 0; i < options.length; i++) {
+                        let bX = bubbleStartX + (i * bubbleSpacing);
+                        doc.circle(bX, bubbleY, 2.8); // Bubble Radius
+                        doc.text(options[i], bX, bubbleY + 1.2, { align: "center" });
+                    }
+
+                    currentQ++;
+                }
+            }
+
+            // Directly Downloads a 2KB file perfectly viewable in Google Drive
+            doc.save('Crystal_Clear_OMR.pdf');
         }
     </script>
 </body>
