@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Bengali OMR Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary-color: #d81b60; 
+            --primary-color: black; 
             --light-pink: #fce4ec; 
-            --border-color: #d81b60;
+            --border-color: black;
         }
         
         body {
@@ -30,6 +31,11 @@
             color: white; border: none; border-radius: 6px;
             cursor: pointer; font-weight: bold; margin-top: 10px;
         }
+        
+        .btn:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
 
         /* OMR Paper Style */
         #omr-paper {
@@ -44,7 +50,7 @@
 
         /* Dashboard Style */
         .dashboard {
-            width: 100%; border-collapse: collapse; margin-bottom: 20px;
+            width: 100%; border-collapse: collapse; margin-bottom: 10px;
         }
         .dashboard td {
             border: 1.5px solid var(--border-color); padding: 8px 12px;
@@ -52,7 +58,7 @@
         }
         .label { background: var(--light-pink); font-weight: bold; width: 22%; }
 
-        /* OMR Columns - Matching your Image */
+        /* OMR Columns */
         .omr-grid {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
         }
@@ -79,8 +85,8 @@
         .bubble {
             width: 20px; height: 20px; border: 1.2px solid var(--primary-color);
             border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 11px; color: var(--primary-color);
-            font-weight: bold;
+            justify-content: center; font-size: 12px; color: var(--primary-color);
+            font-weight: 800;
         }
 
         @media print {
@@ -93,7 +99,7 @@
 
     <div class="setup-box" id="setup">
         <h2 style="color:var(--primary-color)">Bangla OMR Maker</h2>
-        <p>প্রশ্ন সংখ্যা দিন (সর্বোচ্চ ১০০)</p>
+        <p>ENTER QUESTION NUMBER</p>
         <input type="number" id="qCount" value="100" style="padding:10px; width:100px; border:2px solid var(--primary-color); border-radius:5px;">
         <br>
         <button class="btn" onclick="generateOMR()">Preview OMR</button>
@@ -101,35 +107,35 @@
 
     <div class="actions" id="controls" style="display:none; margin-bottom: 20px;">
         <button class="btn" style="background:#555" onclick="location.reload()">Back</button>
-        <button class="btn" onclick="downloadVectorPDF()">Download Vector PDF</button>
+        <button class="btn" id="downloadBtn" onclick="downloadVectorPDF()">Open in Google Drive / PDF Viewer</button>
     </div>
 
     <div id="omr-paper">
-        <div class="omr-header-text">নৈর্ব্যক্তিক অভীক্ষার উত্তরপত্র</div>
+        <div class="omr-header-text">OMR SHEET</div>
         
         <table class="dashboard">
             <tr>
-                <td class="label">পরীক্ষার নাম:</td>
+                <td class="label">EXAM NAME</td>
                 <td class="value">................................</td>
-                <td class="label">পরীক্ষার্থীর নাম:</td>
+                <td class="label">CANDIDATE NAME</td>
                 <td class="value">................................</td>
             </tr>
             <tr>
-                <td class="label">মোট প্রশ্ন:</td>
+                <td class="label">TOTAL QUESTION</td>
                 <td class="value" id="disp-count">0</td>
-                <td class="label">তারিখ:</td>
-                <td class="value">....... / ....... / 202...</td>
+                <td class="label">DATE</td>
+                <td class="value">....... / ....... / 20...</td>
             </tr>
             <tr>
-                <td class="label">সঠিক উত্তর:</td>
+                <td class="label">CORRECT ANSWER</td>
                 <td class="value">__________</td>
-                <td class="label">ভুল উত্তর:</td>
+                <td class="label">WRONG ANSWER</td>
                 <td class="value">__________</td>
             </tr>
             <tr>
-                <td class="label">স্কিপড:</td>
+                <td class="label">SKIP</td>
                 <td class="value">__________</td>
-                <td class="label">মোট নম্বর:</td>
+                <td class="label">TOTAL NUMBER</td>
                 <td class="value">__________</td>
             </tr>
         </table>
@@ -158,7 +164,7 @@
                     col += `<div class="row">
                         <div class="q-no">${toBn(current)}</div>
                         <div class="options">
-                            <div class="bubble">ক</div><div class="bubble">খ</div><div class="bubble">গ</div><div class="bubble">ঘ</div>
+                            <div class="bubble">A</div><div class="bubble">B</div><div class="bubble">C</div><div class="bubble">D</div>
                         </div>
                     </div>`;
                     current++;
@@ -172,22 +178,35 @@
         }
 
         function downloadVectorPDF() {
+            const btn = document.getElementById('downloadBtn');
+            btn.innerText = "Processing High-Quality PDF...";
+            btn.disabled = true;
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            const count = parseInt(document.getElementById('qCount').value);
-
-            // নোট: সরাসরি জেনারেট করা পিডিএফে বাংলা ফন্ট সাপোর্ট করাতে চাইলে 
-            // ফন্ট ফাইল যুক্ত করতে হয়। যেহেতু এটি ব্রাউজার কোড, আমরা .html() মেথড 
-            // ব্যবহার করব যা ব্রাউজারের ভেক্টর ইঞ্জিন ব্যবহার করে ১০০% শার্প আউটপুট দেয়।
-            
             const element = document.getElementById('omr-paper');
+
             doc.html(element, {
                 callback: function (doc) {
-                    doc.save('Professional_Bangla_OMR.pdf');
+                    // এটি সরাসরি ডাউনলোড না করে একটি Blob URL তৈরি করবে
+                    // যার ফলে মোবাইলে এটি Google Drive PDF Viewer-এ ওপেন হবে।
+                    const pdfBlob = doc.output('blob');
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    
+                    window.open(pdfUrl, '_blank');
+                    
+                    btn.innerText = "Open in Google Drive / PDF Viewer";
+                    btn.disabled = false;
                 },
-                x: 0, y: 0,
+                x: 0, 
+                y: 0,
                 width: 210,
-                windowWidth: 794 // A4 pixel width
+                windowWidth: 794,
+                html2canvas: { 
+                    scale: 4, // এই scale: 4 এর কারণেই জুম করলে পিডিএফ একদমই ফাটবে না (High Resolution)
+                    useCORS: true,
+                    logging: false
+                }
             });
         }
     </script>
