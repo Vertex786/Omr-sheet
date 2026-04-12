@@ -3,115 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High Quality OMR Sheet</title>
+    <title>Premium Colorful OMR Sheet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #444; }
+        :root {
+            --primary-color: #4a90e2;
+            --bg-light: #f4f7f9;
+            --border-color: #d1d8e0;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; background: #606c76; }
         
-        /* কন্ট্রোল প্যানেল */
         .controls { 
             position: sticky; top: 0; z-index: 100;
-            text-align: center; padding: 15px; background: #f8f9fa; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+            text-align: center; padding: 15px; background: #ffffff; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2); 
         }
+        
         .btn-dl { 
-            background: #27ae60; color: white; padding: 14px 28px; 
-            border: none; border-radius: 8px; font-size: 16px; 
-            cursor: pointer; font-weight: bold; transition: 0.3s;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white; padding: 14px 30px; border: none; border-radius: 50px;
+            font-size: 16px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
         }
-        .btn-dl:hover { background: #219150; }
 
-        /* প্রিন্ট এরিয়া - এ৪ সাইজ (একদম নিখুঁত মাপ) */
+        /* A4 Page Styling */
         #print-area { 
-            background: white; 
-            width: 210mm; 
-            min-height: 297mm; 
-            margin: 20px auto; 
-            padding: 10mm 15mm; 
-            box-sizing: border-box;
-            position: relative;
+            background: white; width: 210mm; min-height: 297mm; 
+            margin: 20px auto; padding: 10mm; box-sizing: border-box;
         }
 
-        .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #000; padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+        .header { 
+            text-align: center; margin-bottom: 20px; padding: 15px;
+            border: 2px solid var(--primary-color); border-radius: 10px;
+            background: #f0f7ff;
+        }
+        
+        .header h1 { margin: 0; color: var(--primary-color); font-size: 28px; text-transform: uppercase; }
 
-        .info-section { margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+        .info-grid { 
+            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;
+            margin-bottom: 20px; font-size: 13px; 
+        }
+        .info-box { border-bottom: 1px dashed #888; padding: 5px 0; }
 
-        /* ৪ কলাম লেআউট লজিক */
-        .omr-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            column-gap: 30px; 
+        /* ৪টি আলাদা কলাম বক্স */
+        .omr-container { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; 
         }
 
-        .column { display: flex; flex-direction: column; }
+        .column-box { 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; padding: 10px;
+            background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
 
         .row { 
-            display: flex; 
-            align-items: center; 
-            height: 28px; 
-            margin-bottom: 4px;
+            display: flex; align-items: center; height: 30px; margin-bottom: 5px;
+            border-bottom: 1px solid #f9f9f9;
         }
 
-        .q-no { width: 30px; font-size: 13px; font-weight: bold; color: #000; }
-        .options { display: flex; gap: 10px; }
+        .q-no { width: 28px; font-size: 12px; font-weight: bold; color: #555; }
         
-        /* বৃত্তের ডিজাইন যা ফাটবে না */
+        .options { display: flex; gap: 6px; }
+
+        /* কালারফুল বৃত্ত */
         .circle { 
-            width: 19px; height: 19px; 
-            border: 1.2px solid #000; 
-            border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 9px; font-weight: 900; color: #000;
+            width: 20px; height: 20px; border: 1.5px solid var(--primary-color); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 10px; font-weight: bold; color: var(--primary-color);
+            background: #fdfdfd;
         }
 
-        /* প্রিন্ট করার জন্য অতিরিক্ত সেটিংস */
+        /* প্রতিটি অপশনের জন্য আলাদা হালকা শেড (অপশনাল) */
+        .circle:nth-child(1) { border-color: #e74c3c; color: #e74c3c; background: #fff5f5; }
+        .circle:nth-child(2) { border-color: #2ecc71; color: #2ecc71; background: #f4fff9; }
+        .circle:nth-child(3) { border-color: #f1c40f; color: #f1c40f; background: #fffdf0; }
+        .circle:nth-child(4) { border-color: #9b59b6; color: #9b59b6; background: #faf5ff; }
+
         @media print {
             .controls { display: none; }
             body { background: white; }
-            #print-area { margin: 0; border: none; }
+            #print-area { margin: 0; }
+            .column-box { border: 1px solid #ddd !important; } /* প্রিন্টে বর্ডার স্পষ্ট করার জন্য */
         }
     </style>
 </head>
 <body>
 
 <div class="controls">
-    <button class="btn-dl" onclick="downloadPDF()">HD PDF ডাউনলোড করুন</button>
+    <button class="btn-dl" onclick="downloadPDF()">High Quality PDF ডাউনলোড করুন</button>
 </div>
 
 <div id="print-area">
     <div class="header">
-        <h1>OMR ANSWER SHEET</h1>
+        <h1>OMR Answer Sheet</h1>
     </div>
 
-    <div class="info-section">
-        Name: _________________________________ Roll: ______________ Date: _________
+    <div class="info-grid">
+        <div class="info-box">Name: __________________________</div>
+        <div class="info-box">Roll: __________</div>
+        <div class="info-box">Date: _________</div>
     </div>
 
-    <div id="sheet-content" class="omr-grid">
+    <div id="main-content" class="omr-container">
         </div>
 </div>
 
 <script>
-    // আগের পেজ থেকে ডেটা নেওয়া
     const totalQ = parseInt(localStorage.getItem('totalQ')) || 100;
-    const sheetContent = document.getElementById('sheet-content');
+    const container = document.getElementById('main-content');
     const rowsPerColumn = 25;
+    const totalCols = Math.ceil(totalQ / rowsPerColumn);
 
-    const totalColumnsNeeded = Math.ceil(totalQ / rowsPerColumn);
-
-    for (let i = 0; i < totalColumnsNeeded; i++) {
-        const colDiv = document.createElement('div');
-        colDiv.className = 'column';
+    for (let i = 0; i < totalCols; i++) {
+        // প্রতিটি কলামের জন্য আলাদা বক্স
+        const colBox = document.createElement('div');
+        colBox.className = 'column-box';
 
         for (let j = 1; j <= rowsPerColumn; j++) {
-            const currentNumber = (i * rowsPerColumn) + j;
-            if (currentNumber > totalQ) break;
+            const qNum = (i * rowsPerColumn) + j;
+            if (qNum > totalQ) break;
 
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'row';
-            rowDiv.innerHTML = `
-                <div class="q-no">${currentNumber}.</div>
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.innerHTML = `
+                <div class="q-no">${qNum}</div>
                 <div class="options">
                     <div class="circle">A</div>
                     <div class="circle">B</div>
@@ -119,34 +135,26 @@
                     <div class="circle">D</div>
                 </div>
             `;
-            colDiv.appendChild(rowDiv);
+            colBox.appendChild(row);
         }
-        sheetContent.appendChild(colDiv);
+        container.appendChild(colBox);
     }
 
-    // হাই-কোয়ালিটি PDF ডাউনলোড ফাংশন
     function downloadPDF() {
         const element = document.getElementById('print-area');
-        
-        // রেজোলিউশন বাড়ানোর জন্য সেটিংস (Scale: 4 ব্যবহার করা হয়েছে)
         const opt = {
-            margin:       0,
-            filename:     'OMR_Sheet_HD.pdf',
-            image:        { type: 'jpeg', quality: 1.0 },
-            html2canvas:  { 
-                scale: 4, // যত বেশি হবে তত ক্লিয়ার হবে
-                useCORS: true,
-                letterRendering: true
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: 0,
+            filename: 'Colorful_OMR_Sheet.pdf',
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 4, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
-        // বাটন টেক্সট চেঞ্জ (ইউজারকে বুঝানোর জন্য যে কাজ চলছে)
         const btn = document.querySelector('.btn-dl');
-        btn.innerText = "প্রসেসিং হচ্ছে... একটু অপেক্ষা করুন";
+        btn.innerText = "PDF তৈরি হচ্ছে...";
         
         html2pdf().set(opt).from(element).save().then(() => {
-            btn.innerText = "HD PDF ডাউনলোড করুন";
+            btn.innerText = "High Quality PDF ডাউনলোড করুন";
         });
     }
 </script>
