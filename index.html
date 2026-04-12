@@ -3,27 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMR Creator - Input</title>
+    <title>Professional A4 OMR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; box-sizing: border-box; }
-        button { background: #007bff; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; }
+
+        .bubble {
+            width: 22px;
+            height: 22px;
+            border: 1.5px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        /* নম্বর এবং বাবলের মাঝখানের স্পেস কমানো */
+        .question-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 6px 2px; /* প্যাডিং বাড়িয়ে পেজ কভার করা হয়েছে */
+            border-bottom: 0.5px solid #eee;
+        }
+
+        .q-num {
+            width: 28px; /* ফিক্সড ছোট উইডথ */
+            font-size: 11px;
+            font-weight: 900;
+            margin-right: 2px; /* একদম সামান্য গ্যাপ */
+        }
+
+        .omr-column-box {
+            border: 2px solid #000;
+            flex: 1;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* ভার্টিক্যাল গ্যাপ ফিল করার জন্য */
+        }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            .no-print { display: none !important; }
+            body { background: white; }
+            .print-container {
+                width: 210mm;
+                height: 297mm;
+                padding: 12mm !important;
+                margin: 0;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="card">
-        <h2>প্রশ্ন সংখ্যা দিন</h2>
-        <input type="number" id="qCount" placeholder="যেমন: ১০০" min="1">
-        <button onclick="goToPreview()">প্রিভিউ দেখুন</button>
+<body class="bg-gray-100">
+
+    <div id="input-page" class="flex flex-col items-center justify-center min-h-screen no-print">
+        <div class="bg-white p-8 rounded-xl shadow-xl w-72 border text-center">
+            <h2 class="font-bold mb-4">Total Questions</h2>
+            <input type="number" id="total-q" value="100" 
+                class="w-full px-4 py-2 border-2 border-black rounded mb-4 text-center font-bold text-xl outline-none">
+            <button onclick="generateOMR()" 
+                class="w-full bg-black text-white py-3 rounded font-bold hover:bg-gray-800">
+                PREVIEW SHEET
+            </button>
+        </div>
     </div>
+
+    <div id="preview-page" class="hidden flex-col items-center py-6">
+        <div class="no-print flex gap-4 mb-4">
+            <button onclick="location.reload()" class="px-4 py-2 bg-white border border-black font-bold rounded">Edit</button>
+            <button onclick="window.print()" class="px-8 py-2 bg-black text-white font-bold rounded shadow-lg">Download PDF</button>
+        </div>
+
+        <div id="omr-content" class="print-container bg-white p-10 flex flex-col" style="width: 210mm; height: 297mm; box-sizing: border-box;">
+            
+            <div class="border-2 border-black p-4 mb-4">
+                <div class="grid grid-cols-2 gap-4 text-[12px] font-bold uppercase">
+                    <div class="flex items-center gap-2">Name: <span class="border-b border-black flex-1"></span></div>
+                    <div class="flex items-center gap-2">Signature: <span class="border-b border-black flex-1"></span></div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 mt-4">
+                    <div class="border border-black p-1 px-2 text-[10px]">Correct:</div>
+                    <div class="border border-black p-1 px-2 text-[10px]">Wrong:</div>
+                    <div class="border border-black p-1 px-2 text-[10px]">Blank:</div>
+                    <div class="border border-black p-1 px-2 text-[10px] bg-gray-50">Total Marks:</div>
+                </div>
+            </div>
+
+            <div class="flex-1 border-2 border-black p-2 flex gap-2">
+                <div id="col-1" class="omr-column-box"></div>
+                <div id="col-2" class="omr-column-box"></div>
+                <div id="col-3" class="omr-column-box"></div>
+                <div id="col-4" class="omr-column-box"></div>
+            </div>
+
+            </div>
+    </div>
+
     <script>
-        function goToPreview() {
-            const num = document.getElementById('qCount').value;
-            if(num > 0) {
-                localStorage.setItem('totalQ', num);
-                window.location.href = 'preview.html';
+        function generateOMR() {
+            const total = parseInt(document.getElementById('total-q').value);
+            const perCol = 25;
+            
+            for (let c = 1; c <= 4; c++) {
+                const colBox = document.getElementById(`col-${c}`);
+                colBox.innerHTML = '';
+                
+                for (let r = 1; r <= perCol; r++) {
+                    let qNum = ((c - 1) * perCol) + r;
+                    if (qNum > total) {
+                        // বক্স খালি না রেখে সমান দেখানোর জন্য এম্পটি রো
+                        colBox.innerHTML += `<div class="question-row border-none opacity-0"><span class="q-num">${qNum}</span></div>`;
+                        continue;
+                    }
+
+                    colBox.innerHTML += `
+                        <div class="question-row">
+                            <span class="q-num">${qNum}.</span>
+                            <div class="flex gap-1">
+                                <div class="bubble">A</div>
+                                <div class="bubble">B</div>
+                                <div class="bubble">C</div>
+                                <div class="bubble">D</div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
+
+            document.getElementById('input-page').classList.add('hidden');
+            document.getElementById('preview-page').classList.remove('hidden');
+            document.getElementById('preview-page').classList.add('flex');
         }
     </script>
 </body>
