@@ -31,3 +31,8 @@ body{
   background-color: blue;
   gap: 5px;
 }
+@media print {
+  body {
+    visibility: visible;
+  }
+}
