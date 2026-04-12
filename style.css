@@ -4,7 +4,7 @@
   box-sizing:border-box;
 }
 body{
-  height: 842px;
+  max-height: 842px;
   background-color: #DBDBE7;
   width: 595px;
   display:flex;
