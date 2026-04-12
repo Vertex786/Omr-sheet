@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMR Generator</title>
+    <title>OMR Creator - Input</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 18px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; box-sizing: border-box; }
+        button { background: #007bff; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>OMR শিট তৈরি করুন</h2>
-        <input type="number" id="qCount" placeholder="মোট প্রশ্ন সংখ্যা (যেমন: ১০০)" min="1">
-        <button onclick="saveAndGo()">ফাইনাল পেজ দেখুন</button>
+    <div class="card">
+        <h2>প্রশ্ন সংখ্যা দিন</h2>
+        <input type="number" id="qCount" placeholder="যেমন: ১০০" min="1">
+        <button onclick="goToPreview()">প্রিভিউ দেখুন</button>
     </div>
     <script>
-        function saveAndGo() {
+        function goToPreview() {
             const num = document.getElementById('qCount').value;
             if(num > 0) {
                 localStorage.setItem('totalQ', num);
-                window.location.href = 'final.html';
+                window.location.href = 'preview.html';
             }
         }
     </script>
