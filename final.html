@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>প্রিন্ট প্রিভিউ</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        
+        /* কলাম লেআউট */
+        .sheet-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            justify-content: flex-start;
+        }
+        
+        .column { 
+            border: 1px solid #ccc; 
+            padding: 10px;
+            min-width: 200px;
+        }
+
+        .row { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 8px; 
+            font-size: 14px;
+        }
+
+        .q-no { width: 30px; font-weight: bold; }
+        .options { display: flex; gap: 10px; }
+        .circle { 
+            width: 18px; height: 18px; 
+            border: 1px solid #333; 
+            border-radius: 50%; 
+            display: inline-block; 
+            text-align: center; 
+            font-size: 11px; 
+            line-height: 18px; 
+        }
+
+        .btn-container { text-align: center; margin-top: 30px; }
+        .print-btn { background: #28a745; color: white; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; }
+
+        @media print {
+            .btn-container { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>উত্তরপত্র (Answer Sheet)</h2>
+</div>
+
+<div id="sheet" class="sheet-container">
+    </div>
+
+<div class="btn-container">
+    <button class="print-btn" onclick="window.print()">প্রিন্ট করুন</button>
+</div>
+
+<script>
+    const totalQ = parseInt(localStorage.getItem('qCount')) || 0;
+    const sheet = document.getElementById('sheet');
+    const rowsPerColumn = 25;
+
+    // কয়টি কলাম লাগবে তা হিসেব করা
+    const totalColumns = Math.ceil(totalQ / rowsPerColumn);
+
+    for (let i = 0; i < totalColumns; i++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'column';
+
+        for (let j = 1; j <= rowsPerColumn; j++) {
+            const qIndex = i * rowsPerColumn + j;
+            if (qIndex > totalQ) break; // ইনপুট সংখ্যার বেশি হলে লুপ বন্ধ হবে
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+            rowDiv.innerHTML = `
+                <div class="q-no">${qIndex}.</div>
+                <div class="options">
+                    <span class="circle">A</span>
+                    <span class="circle">B</span>
+                    <span class="circle">C</span>
+                    <span class="circle">D</span>
+                </div>
+            `;
+            colDiv.appendChild(rowDiv);
+        }
+        sheet.appendChild(colDiv);
+    }
+</script>
+
+</body>
+</html>
