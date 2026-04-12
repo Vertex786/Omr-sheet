@@ -3,185 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium OMR Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Ultimate Vector OMR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #d81b60; 
             --light-pink: #fce4ec; 
-            --border-color: #d81b60;
         }
         
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 20px;
+            font-family: 'Helvetica', Arial, sans-serif;
+            background-color: #f4f4f9;
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 20px;
         }
 
-        /* Input Section */
-        .input-box {
+        .setup-box {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             text-align: center;
-            width: 100%;
-            max-width: 450px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        input[type="number"] {
-            padding: 12px;
-            width: 100px;
+        input {
+            padding: 10px;
+            width: 80px;
             border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            font-size: 18px;
-            outline: none;
+            border-radius: 5px;
+            font-size: 16px;
         }
 
         .btn {
-            padding: 12px 25px;
+            padding: 11px 20px;
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.3s;
+            margin: 5px;
         }
 
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        /* Controls */
-        .controls { display: none; gap: 15px; margin-bottom: 20px; }
-
-        /* OMR Sheet Design (Exactly what you liked) */
-        #omr-sheet {
+        /* OMR Design - Optimized for Vector Export */
+        #omr-container {
             background: white;
+            width: 210mm;
             padding: 15mm;
-            width: 210mm; /* A4 Width */
-            min-height: 297mm;
             box-sizing: border-box;
-            display: none;
-        }
-
-        .omr-title {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            font-weight: bold;
+            display: none; /* Hidden until generated */
         }
 
         .omr-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 12px;
         }
 
         .column {
-            border: 1.5px solid var(--border-color);
-            border-radius: 5px;
-            overflow: hidden;
+            border: 1px solid var(--primary-color);
+            border-radius: 2px;
         }
 
         .header {
             display: flex;
             background: var(--light-pink);
-            border-bottom: 1.5px solid var(--border-color);
+            border-bottom: 1px solid var(--primary-color);
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        .h-no { width: 35px; text-align: center; padding: 8px 0; border-right: 1.5px solid var(--border-color); }
-        .h-ans { flex: 1; text-align: center; padding: 8px 0; }
+        .h-no { width: 30px; text-align: center; padding: 5px 0; border-right: 1px solid var(--primary-color); }
+        .h-ans { flex: 1; text-align: center; padding: 5px 0; }
 
         .row {
             display: flex;
-            border-bottom: 0.5px solid var(--light-pink);
+            border-bottom: 0.2px solid var(--light-pink);
+            height: 28px;
             align-items: center;
-            height: 32px;
         }
 
-        .row:nth-child(even) { background: #fff9fb; }
-        .row:last-child { border-bottom: none; }
-
         .q-no {
-            width: 35px;
+            width: 30px;
             text-align: center;
+            font-size: 12px;
             font-weight: bold;
-            font-size: 14px;
-            border-right: 1.5px solid var(--border-color);
-            color: #333;
+            border-right: 1px solid var(--primary-color);
         }
 
         .bubbles {
             display: flex;
             flex: 1;
             justify-content: space-around;
-            padding: 0 5px;
+            padding: 0 4px;
         }
 
         .circle {
-            width: 20px;
-            height: 20px;
-            border: 1.2px solid var(--primary-color);
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--primary-color);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 9px;
             color: var(--primary-color);
+            font-weight: bold;
         }
 
         @media print {
-            .input-box, .controls { display: none !important; }
-            #omr-sheet { display: block !important; box-shadow: none; padding: 0; }
+            .setup-box, .btn-group { display: none !important; }
+            #omr-container { display: block !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="input-box" id="setup">
-        <h2 style="color: var(--primary-color);">OMR Generator</h2>
-        <input type="number" id="totalQ" value="100" min="1" max="100">
-        <button class="btn" onclick="buildOMR()">Generate Preview</button>
+    <div class="setup-box" id="setup">
+        <h2>Premium OMR Generator</h2>
+        <input type="number" id="inputCount" value="100" max="100">
+        <button class="btn" onclick="renderPreview()">Preview</button>
     </div>
 
-    <div class="controls" id="controls">
-        <button class="btn" style="background:#555" onclick="location.reload()">Reset</button>
-        <button class="btn" onclick="window.print()">Print</button>
-        <button class="btn" onclick="savePDF()">Download PDF</button>
+    <div class="btn-group" id="controls" style="display:none; margin-bottom: 20px;">
+        <button class="btn" style="background:#444" onclick="location.reload()">Back</button>
+        <button class="btn" onclick="downloadVector()">Download Vector PDF</button>
     </div>
 
-    <div id="omr-sheet">
-        <div class="omr-title">OMR ANSWER SHEET</div>
-        <div class="omr-grid" id="gridCont"></div>
+    <div id="omr-container">
+        <div style="text-align:center; color:#d81b60; font-size: 22px; font-weight:bold; margin-bottom:15px;">OMR ANSWER SHEET</div>
+        <div class="omr-grid" id="mainGrid"></div>
     </div>
 
     <script>
-        function buildOMR() {
-            const num = document.getElementById('totalQ').value;
-            const container = document.getElementById('gridCont');
-            container.innerHTML = '';
+        function renderPreview() {
+            const count = document.getElementById('inputCount').value;
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = '';
             
-            let current = 1;
-            const cols = Math.ceil(num / 25);
+            let q = 1;
+            const totalCols = Math.ceil(count / 25);
 
-            for(let i=0; i<cols; i++) {
-                let colHtml = `<div class="column"><div class="header"><div class="h-no">No.</div><div class="h-ans">Answers</div></div>`;
+            for(let i=0; i<totalCols; i++) {
+                let col = `<div class="column"><div class="header"><div class="h-no">No</div><div class="h-ans">Answers</div></div>`;
                 for(let j=0; j<25; j++) {
-                    if(current > num) break;
-                    colHtml += `
+                    if(q > count) break;
+                    col += `
                         <div class="row">
-                            <div class="q-no">${current}</div>
+                            <div class="q-no">${q}</div>
                             <div class="bubbles">
                                 <div class="circle">A</div>
                                 <div class="circle">B</div>
@@ -189,38 +162,33 @@
                                 <div class="circle">D</div>
                             </div>
                         </div>`;
-                    current++;
+                    q++;
                 }
-                colHtml += `</div>`;
-                container.innerHTML += colHtml;
+                col += `</div>`;
+                grid.innerHTML += col;
             }
-
             document.getElementById('setup').style.display = 'none';
-            document.getElementById('controls').style.display = 'flex';
-            document.getElementById('omr-sheet').style.display = 'block';
+            document.getElementById('controls').style.display = 'block';
+            document.getElementById('omr-container').style.display = 'block';
         }
 
-        async function savePDF() {
+        async function downloadVector() {
             const { jsPDF } = window.jspdf;
-            const sheet = document.getElementById('omr-sheet');
-            
-            // High quality capture
-            const canvas = await html2canvas(sheet, {
-                scale: 3, // Increases resolution so it won't pixelate on zoom
-                useCORS: true,
-                logging: false
-            });
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const element = document.getElementById('omr-container');
 
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
-            
-            // This will open in Google Drive PDF viewer on most mobile browsers
-            window.open(pdf.output('bloburl'), '_blank');
-            pdf.save("OMR_Sheet_Premium.pdf");
+            // .html() method with callback ensures vector rendering where possible
+            doc.html(element, {
+                callback: function (doc) {
+                    // Open in new tab (Google Drive viewer style)
+                    window.open(doc.output('bloburl'));
+                    doc.save('Vector_OMR.pdf');
+                },
+                x: 0,
+                y: 0,
+                width: 210, // A4 width in mm
+                windowWidth: 794 // A4 width in pixels at 96 DPI
+            });
         }
     </script>
 </body>
