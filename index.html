@@ -8,7 +8,7 @@
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .setup-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
-        .btn { padding: 12px 25px; background: #C64545; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
+        .btn { padding: 12px 25px; background: #000000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
         input { padding: 10px; width: 100px; border: 2px solid #000; border-radius: 5px; margin: 10px 0; font-size: 16px; text-align: center; }
        
     </style>
@@ -63,21 +63,21 @@
             // ড্যাশবোর্ড গ্রিড (৩টি সারি)
             let dY = 22;
             drawCell(10, dY, 40, 10, "EXAM NAME", "", true);
-            drawCell(50, dY, 60, 10, "................................", "");
+            drawCell(50, dY, 60, 10, "", "");
             drawCell(110, dY, 40, 10, "TOTAL Q.", "", true);
-            drawCell(150, dY, 50, 10, qCount.toString(), "");
+            drawCell(150, dY, 50, 10, "", "");
 
             dY += 10;
             drawCell(10, dY, 40, 10, "CANDIDATE NAME", "", true);
-            drawCell(50, dY, 60, 10, "................................", "");
-            drawCell(110, dY, 40, 10, "SKIP", "", true);
-            drawCell(150, dY, 50, 10, "..................", "");
+            drawCell(50, dY, 60, 10, "", "");
+            drawCell(110, dY, 40, 10, "WRONG & SKIP", "", true);
+            drawCell(150, dY, 50, 10, "                         &", "");
 
             dY += 10;
             drawCell(10, dY, 40, 10, "DATE", "", true);
-            drawCell(50, dY, 60, 10, "..............", "");
+            drawCell(50, dY, 60, 10, "", "");
             drawCell(110, dY, 40, 10, "OBTAIN MARKS", "", true);
-            drawCell(150, dY, 50, 10, "..................", "");
+            drawCell(150, dY, 50, 10, "", "");
 
             // ৩. ওএমআর কলাম সেটআপ (১-২৫ কলাম ভিত্তিক)
             const startY = 60;
@@ -96,6 +96,7 @@
                 doc.setDrawColor(0);
                 doc.setFillColor(...pinkColor);
                 doc.rect(x, y, 8, rowHeight, 'F'); // নম্বর কলামের ব্যাকগ্রাউন্ড
+                doc.setLineWidth(0.1);
                 doc.rect(x, y, colWidth, rowHeight); // পুরো রো বর্ডার
                 
                 doc.setFontSize(10);
@@ -108,7 +109,7 @@
                     const bx = x + 15 + (optIdx * 8.5);
                     const by = y + 4.2;
                     
-                    doc.setLineWidth(0.15);
+                    doc.setLineWidth(0.25);
                     doc.circle(bx, by, 3, 'S'); // বৃত্ত
                     doc.setFontSize(8);
                     doc.setFont("helvetica", "normal");
@@ -119,7 +120,7 @@
             // ৪. সরাসরি ডাউনলোড
             // এটি ব্রাউজারের মাধ্যমে ফাইল ডাউনলোড করবে। 
             // মোবাইলে এটি সরাসরি Google Drive PDF Viewer এ খোলার অপশন দেয়।
-            doc.save("OMR_Official_Sheet.pdf");
+            doc.save("OMR Sheet.pdf");
         }
     </script>
 </body>
