@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="bn">
-<head
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Make Your Own OMR Sheet</title>
@@ -9,16 +9,25 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .setup-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
         .btn { padding: 12px 25px; background: #000000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
-        input { padding: 10px; width: 100px; border: 2px solid #000; border-radius: 5px; margin: 10px 0; font-size: 16px; text-align: center; }
-       
+        input { padding: 10px; border: 2px solid #000; border-radius: 5px; margin: 10px 0; font-size: 16px; text-align: center; width: 100px; }
+        .input-group { margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <div class="setup-box">
         <h2 style="margin-top:0">Make Your OMR Sheet</h2>
-        <p style="font-weight: 600;">ENTER YOUR QUESTION NUMBER <br><span style="color:rgba(120,120,120,1) ;font-weight:400;">(Max 100 Question)</span></p>
-        <input type="number" id="qCount" placeholder="100">
+        
+        <div class="input-group">
+            <p style="font-weight: 600; margin-bottom: 5px;">ENTER YOUR QUESTION NUMBER <br><span style="color:rgba(120,120,120,1) ;font-weight:400;">(Max 100 Question)</span></p>
+            <input type="number" id="qCount" placeholder="100" value="100" min="1" max="100">
+        </div>
+
+        <div class="input-group">
+            <p style="font-weight: 600; margin-bottom: 5px;">NUMBER OF OPTIONS <br><span style="color:rgba(120,120,120,1) ;font-weight:400;">(Type 3, 4, or 5)</span></p>
+            <input type="number" id="optCount" placeholder="4" value="4" min="3" max="5">
+        </div>
+        
         <br>
         <button class="btn" onclick="downloadVectorPDF()">Download & Open in Drive</button>
        
@@ -28,9 +37,16 @@
         function downloadVectorPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // ইনপুট ভ্যালিডেশন
             const qCount = parseInt(document.getElementById('qCount').value) || 100;
+            let optCount = parseInt(document.getElementById('optCount').value) || 4;
+            
+            // ৩, ৪ বা ৫ এর বাইরে দিলে ডিফল্ট ৪ সেট করবে
+            if (optCount < 3) optCount = 3;
+            if (optCount > 5) optCount = 5;
 
-            // ১. কালার সেটআপ (আপনার আগের স্টাইল অনুযায়ী)
+            // ১. কালার সেটআপ
             const primaryColor = [0, 0, 0]; // Black
             const pinkColor = [252, 228, 236]; // Light Pink
 
@@ -84,6 +100,23 @@
             const colWidth = 46;
             const rowHeight = 8.5;
 
+            // অপশনের স্পেসিং নির্ধারণ (বক্সের ভেতর পারফেক্টলি ফিট করার জন্য)
+            let startOptX, optGap;
+            
+            if (optCount === 3) {
+                startOptX = 17;   // ৩টি অপশনের জন্য সেন্টারিং
+                optGap = 10;
+            } else if (optCount === 4) {
+                startOptX = 14.5; // ৪টি অপশনের জন্য সেন্টারিং
+                optGap = 8.5;
+            } else if (optCount === 5) {
+                startOptX = 13;   // ৫টি অপশনের জন্য পারফেক্ট সেন্টারিং (বর্ডার থেকে দূরত্ব বজায় রাখতে)
+                optGap = 7;
+            }
+
+            const allOptions = ['A', 'B', 'C', 'D', 'E'];
+            const currentOptions = allOptions.slice(0, optCount);
+
             doc.setTextColor(0);
             for (let i = 0; i < Math.min(qCount, 100); i++) {
                 const colIndex = Math.floor(i / 25); // প্রতি কলামে ২৫টি
@@ -104,9 +137,8 @@
                 doc.text((i + 1).toString(), x + 4, y + 5.5, { align: "center" });
 
                 // অপশন বাবল (বিত্ত আঁকা)
-                const options = ['A', 'B', 'C', 'D'];
-                options.forEach((opt, optIdx) => {
-                    const bx = x + 15 + (optIdx * 8.5);
+                currentOptions.forEach((opt, optIdx) => {
+                    const bx = x + startOptX + (optIdx * optGap);
                     const by = y + 4.2;
                     
                     doc.setLineWidth(0.25);
@@ -118,8 +150,6 @@
             }
 
             // ৪. সরাসরি ডাউনলোড
-            // এটি ব্রাউজারের মাধ্যমে ফাইল ডাউনলোড করবে। 
-            // মোবাইলে এটি সরাসরি Google Drive PDF Viewer এ খোলার অপশন দেয়।
             doc.save("OMR Sheet.pdf");
         }
     </script>
