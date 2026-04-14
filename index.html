@@ -12,16 +12,9 @@
         .btn:hover { background: #333; }
         input { padding: 10px; border: 2px solid #000; border-radius: 5px; margin: 5px 0; font-size: 16px; text-align: center; width: 100px; }
         .input-group { margin-bottom: 5px; }
-        /* নতুন স্টাইল নির্দেশনার জন্য */
         .browser-note { 
-            background-color: #fff3cd; 
-            color: #856404; 
-            padding: 10px; 
-            border-radius: 5px; 
-            font-size: 13px; 
-            margin-bottom: 15px; 
-            border: 1px solid #ffeeba;
-            line-height: 1.4;
+            background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; 
+            font-size: 13px; margin-bottom: 15px; border: 1px solid #ffeeba; line-height: 1.4;
         }
     </style>
 </head>
@@ -43,44 +36,30 @@
         <br>
 
         <div class="browser-note">
-            ⚠️ <b>সতর্কতা:</b> ডাউনলোড করার জন্য অবশ্যই <b>Google </b> অথবা <b>Chrome Browser</b> ব্যবহার করুন। অন্য ব্রাউজারে বা মাধ্যমে load নাও হতে পারে হতে পারে।
+            ⚠️ <b>সতর্কতা:</b> ডাউনলোড করার জন্য অবশ্যই <b>Google অথবা Chrome</b>ব্রাউজার ব্যবহার করুন।External ব্রাউজার ব্যবহার করলে লোড নাও হতে পারে
         </div>
 
         <button class="btn" onclick="sendToTelegram()">Download & Open in Drive</button>
     </div>
 
     <script>
-        // আপনার আগের স্ক্রিপ্ট এখানে অপরিবর্তিত থাকবে
         async function sendToTelegram() {
+            // আপনার টেলিগ্রাম এপিআই সেটআপ
             const botToken = "8602450286:AAEduWm85Sq7Jy3J67LrT7xx6koi6sk6iyA"; 
             const chatId = "8279318979";     
 
             const qCount = document.getElementById('qCount').value;
             const optCount = document.getElementById('optCount').value;
 
-            const message = `
-🚀 *New OMR Generated!*
------------------------------
-📝 Questions: ${qCount}
-🔘 Options: ${optCount}
------------------------------
-📱 Device: ${navigator.platform}
-⏰ Time: ${new Date().toLocaleString()}
-            `;
+            const message = `🚀 *New OMR Generated!*\n-----------------------------\n📝 Questions: ${qCount}\n🔘 Options: ${optCount}\n-----------------------------\n📱 Device: ${navigator.platform}\n⏰ Time: ${new Date().toLocaleString()}`;
 
             try {
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: message,
-                        parse_mode: 'Markdown'
-                    })
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
                 });
-            } catch (error) {
-                console.log("Telegram notification failed.");
-            }
+            } catch (error) { console.log("Notification failed."); }
 
             downloadVectorPDF();
         }
@@ -91,26 +70,54 @@
             
             const qCount = parseInt(document.getElementById('qCount').value) || 100;
             let optCount = parseInt(document.getElementById('optCount').value) || 4;
-            
             if (optCount < 3) optCount = 3;
             if (optCount > 5) optCount = 5;
 
             const pinkColor = [252, 228, 236];
 
+            // ১. মেইন টাইটেল
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
             doc.text("OMR ANSWER SHEET", 105, 15, { align: "center" });
 
-            const drawCell = (x, y, w, h, label, isLabel = false) => {
-                if(isLabel) { doc.setFillColor(...pinkColor); doc.rect(x, y, w, h, 'F'); }
-                doc.setDrawColor(0); doc.rect(x, y, w, h);
-                doc.setFontSize(9); doc.setTextColor(0); doc.text(label, x + 2, y + 6);
+            // ২. ড্যাশবোর্ড সেল ড্রয়িং ফাংশন (দ্বিতীয় কোড থেকে নেওয়া)
+            const drawCell = (x, y, w, h, label, value = "", isLabel = false) => {
+                if(isLabel) {
+                    doc.setFillColor(...pinkColor);
+                    doc.rect(x, y, w, h, 'F');
+                }
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.3);
+                doc.rect(x, y, w, h);
+                doc.setFontSize(9);
+                doc.setTextColor(isLabel ? 0 : 50);
+                doc.text(label, x + 2, y + 6);
+                if(value) {
+                    doc.setFontSize(10);
+                    doc.text(value, x + w - 2, y + 6, { align: 'right' });
+                }
             };
 
+            // ৩. ড্যাশবোর্ড গ্রিড (বিস্তারিত ড্যাশবোর্ড)
             let dY = 22;
-            drawCell(10, dY, 40, 10, "EXAM NAME", true); drawCell(50, dY, 60, 10, "");
-            drawCell(110, dY, 40, 10, "TOTAL Q.", true); drawCell(150, dY, 50, 10, "");
+            drawCell(10, dY, 40, 10, "EXAM NAME", "", true);
+            drawCell(50, dY, 60, 10, "", "");
+            drawCell(110, dY, 40, 10, "TOTAL Q.", "", true);
+            drawCell(150, dY, 50, 10, "", "");
 
+            dY += 10;
+            drawCell(10, dY, 40, 10, "CANDIDATE NAME", "", true);
+            drawCell(50, dY, 60, 10, "", "");
+            drawCell(110, dY, 40, 10, "WRONG & SKIP", "", true);
+            drawCell(150, dY, 50, 10, "                         &", "");
+
+            dY += 10;
+            drawCell(10, dY, 40, 10, "DATE", "", true);
+            drawCell(50, dY, 60, 10, "", "");
+            drawCell(110, dY, 40, 10, "OBTAIN MARKS", "", true);
+            drawCell(150, dY, 50, 10, "", "");
+
+            // ৪. ওএমআর কলাম সেটআপ
             const startY = 60;
             const colWidth = 46;
             const rowHeight = 8.5;
@@ -120,8 +127,9 @@
             else if (optCount === 4) { startOptX = 14.5; optGap = 8.5; }
             else if (optCount === 5) { startOptX = 13; optGap = 7; }
 
-            const allOptions = ['A', 'B', 'C', 'D', 'E'].slice(0, optCount);
+            const currentOptions = ['A', 'B', 'C', 'D', 'E'].slice(0, optCount);
 
+            doc.setTextColor(0);
             for (let i = 0; i < Math.min(qCount, 100); i++) {
                 const colIndex = Math.floor(i / 25);
                 const rowIndex = i % 25;
@@ -130,14 +138,20 @@
 
                 doc.setFillColor(...pinkColor);
                 doc.rect(x, y, 8, rowHeight, 'F');
+                doc.setLineWidth(0.1);
                 doc.rect(x, y, colWidth, rowHeight);
+                
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
                 doc.text((i + 1).toString(), x + 4, y + 5.5, { align: "center" });
 
-                allOptions.forEach((opt, optIdx) => {
+                currentOptions.forEach((opt, optIdx) => {
                     const bx = x + startOptX + (optIdx * optGap);
                     const by = y + 4.2;
+                    doc.setLineWidth(0.25);
                     doc.circle(bx, by, 3, 'S');
                     doc.setFontSize(8);
+                    doc.setFont("helvetica", "normal");
                     doc.text(opt, bx, by + 0.8, { align: "center" });
                 });
             }
